@@ -2,7 +2,7 @@ from flask import Blueprint, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from models.card import Card, CardSchema
 from setup import db
-from auth import admin_required
+from auth import admin_required, authorize
 from blueprints.comments_bp import comments_bp
 
 cards_bp = Blueprint('cards', __name__, url_prefix='/cards')
@@ -51,12 +51,12 @@ def create_card():
 @cards_bp.route('/<int:id>', methods=['PUT', 'PATCH'])
 @jwt_required()
 def update_card(id):
-    admin_required()
     card_info = CardSchema(exclude=['id', 'date_created']).load(request.json)
     stmt = db.select(Card).filter_by(id=id) # .where(Card.id == id)
     card = db.session.scalar(stmt)
 
     if card:
+        authorize(card.user_id)
         card.title = card_info.get('title', card.title)
         card.description = card_info.get('description', card.description)
         card.status = card_info.get('status', card.status)

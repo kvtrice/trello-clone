@@ -2,7 +2,7 @@ from flask import Blueprint, request
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from models.comment import Comment, CommentSchema
 from setup import db
-from auth import admin_required
+from auth import admin_required, authorize
 
 comments_bp = Blueprint('comments', __name__, url_prefix='/<int:card_id>/comments')
 
@@ -36,6 +36,7 @@ def update_comment(card_id, comment_id):
     comment = db.session.scalar(stmt)
 
     if comment:
+        authorize(comment.user_id)
         comment.message = comment_info.get('message', comment.message)
         db.session.commit()
         return CommentSchema().dump(comment), 200

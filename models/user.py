@@ -1,5 +1,6 @@
 from setup import db, ma
 from marshmallow import fields
+from marshmallow.validate import Length
 
 class User(db.Model):
     __tablename__ = 'users'
@@ -17,6 +18,8 @@ class User(db.Model):
 
 class UserSchema(ma.Schema):
     cards = fields.Nested('CardSchema', exclude=['user'], many=True)
+    email = fields.Email(required=True)
+    password = fields.String(required=True, validate=Length(min=8, error='Password must be at least 8 characters'))
 
     class Meta:
         fields = ('id', 'name', 'email', 'password', 'is_admin', 'cards')
